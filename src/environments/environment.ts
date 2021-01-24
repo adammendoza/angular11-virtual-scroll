@@ -3,7 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  API_URL: 'https://api.tzstats.com',
+  RECEIVER_ID: 'tz1gfArv665EUkSg2ojMBzcbfwuPxAvqPvjo'
 };
 
 /*

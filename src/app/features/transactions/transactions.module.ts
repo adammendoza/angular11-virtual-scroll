@@ -8,7 +8,7 @@ import { TransactionsPageComponent } from './transactions-page/transactions-page
   declarations: [TransactionsPageComponent],
   imports: [
     CommonModule,
-    // StoreModule.forFeature({}, {})
+    StoreModule.forFeature('transactions', {}, {})
   ]
 })
 export class TransactionsModule { }

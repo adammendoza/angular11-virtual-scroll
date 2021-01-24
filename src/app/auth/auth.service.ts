@@ -7,6 +7,8 @@ import * as fromRoot from '../app.reducer';
 import * as UI from '../shared/ui.actions';
 import * as Auth from './auth.actions';
 
+import { environment } from '../../environments/environment';
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,7 +23,7 @@ export class AuthService {
 
   registerUser(authData: AuthData) {
     this.store.dispatch(new UI.StartLoading());
-    this.store.dispatch(new Auth.SetUserId('1'));
+    this.store.dispatch(new Auth.SetUserId(environment.RECEIVER_ID));
     this.store.dispatch(new Auth.SetAuthenticated());
     this.store.dispatch(new UI.StopLoading());
     this.router.navigate(['/transactions']);
@@ -30,7 +32,7 @@ export class AuthService {
   login(authData: AuthData) {
     this.store.dispatch(new UI.StartLoading());
     this.store.dispatch(new UI.StartLoading());
-    this.store.dispatch(new Auth.SetUserId('1'));
+    this.store.dispatch(new Auth.SetUserId(environment.RECEIVER_ID));
     this.store.dispatch(new Auth.SetAuthenticated());
     this.store.dispatch(new UI.StopLoading());
     this.router.navigate(['/transactions']);
