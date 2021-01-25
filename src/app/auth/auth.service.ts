@@ -8,6 +8,7 @@ import * as UI from '../shared/ui.actions';
 import * as Auth from './auth.actions';
 
 import { environment } from '../../environments/environment';
+import { timeInterval } from 'rxjs/operators';
 
 @Injectable()
 export class AuthService {

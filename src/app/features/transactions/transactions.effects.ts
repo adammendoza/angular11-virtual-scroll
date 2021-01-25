@@ -22,7 +22,6 @@ export class StorageBlockEffects {
 
   private isAuth$: Observable<boolean>;
   private receiverId: string;
-  private cursorId: number;
 
     @Effect()
     StorageBlock$ = this.actions$.pipe(
@@ -69,7 +68,6 @@ export class StorageBlockEffects {
         private authStore: Store<fromAuth.State>
     ) {
       this.receiverId = '';
-      this.cursorId = 0;
       this.isAuth$ = this.authStore.select(fromAuth.getIsAuth);
 
       this.isAuth$.subscribe(isAuth => {
