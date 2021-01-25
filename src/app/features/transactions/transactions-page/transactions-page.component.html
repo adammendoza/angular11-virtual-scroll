@@ -1,1 +1,74 @@
-<p>transactions-page works!</p>
+<style>
+  .virtual_scroll-table-type {
+      display: inline-block;
+      min-width: 100px;
+      min-height: 16px;
+  }
+
+  .virtual_scroll-table-amount {
+      display: inline-block;
+      min-width: 130px;
+      min-height: 16px;
+  }
+
+  .virtual_scroll-table-datetime {
+      display: inline-block;
+      min-width: 160px;
+      min-height: 16px;
+  }
+
+  .virtual_scroll-table-address {
+      display: inline-block;
+      min-width: 100px;
+      min-height: 16px;
+  }
+</style>
+
+<div class="storage-block-container">
+  <div class="table-virtual-scroll">
+      <div style="height:36px;"></div>
+      <div class="table-virtual-scroll-header">
+          <span class="virtual_scroll-table-type">TYPE</span>
+          <span class="virtual_scroll-table-amount">AMOUNT</span>
+          <span class="virtual_scroll-table-datetime">DATE</span>
+          <span class="virtual_scroll-table-address">ADDRESS</span>
+      </div>
+
+      <div class="table-virtual-scroll-panel" style="display:flex;flex-direction: row;">
+
+          <cdk-virtual-scroll-viewport style="align-items: flex-start;" class="virtual_scroll-table-viewport"
+              (scrolledIndexChange)="onScroll($event)" [itemSize]="10" [maxBufferPx]="288" [minBufferPx]="288">
+
+              <div *cdkVirtualFor="let even = even;let item of transactionsDataList" class="table-virtual-scroll-item">
+                  <span class="virtual_scroll-table-type">
+                      {{item?.type}}
+                  </span>
+                  <span class="virtual_scroll-table-amount">
+                    {{item?.amount}}
+                  </span>
+                  <span class="virtual_scroll-table-datetime">
+                    {{item?.datetime}}
+                  </span>
+                  <span class="virtual_scroll-table-address">
+                      {{item?.addressId}}
+                  </span>
+              </div>
+          </cdk-virtual-scroll-viewport>
+
+      </div>
+      <div class="table-virtual-scroll-footer">
+          <span>
+              <button mat-icon-button matTooltip="Start" (click)="scrollStart()" *ngIf="!transactionsData?.stream">
+                  <mat-icon>play_arrow_outline</mat-icon>
+              </button>
+              <button mat-icon-button matTooltip="Stop" (click)="scrollStop()" *ngIf="transactionsData?.stream">
+                  <mat-icon>stop_outline</mat-icon>
+              </button>
+              <button mat-icon-button style="transform: rotate(90deg)" matTooltip="Last page" (click)="scrollToEnd()">
+                  <mat-icon>last_page</mat-icon>
+              </button>
+          </span>
+      </div>
+  </div>
+
+</div>

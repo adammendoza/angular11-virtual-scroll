@@ -5,9 +5,11 @@ import { Transaction } from './models/transaction.model';
 export enum TransactionActionTypes {
   RESET_STATE = '[Transaction] Reset State',
   SET_TRANSACTIONS_CURSOR_ID = '[Transaction] Set Transactions Cursor Id',
-  GET_TRANSACTIONS = '[Transaction] Get Transactions',
-  GET_TRANSACTIONS_SUCCESS = '[Transaction] Get Transactions Sucsess',
-  GET_TRANSACTIONS_ERROR = '[Transaction] Get Transactions Error'
+  GET_TRANSACTIONS_LOAD = '[Transaction] Get Transactions Load',
+  GET_TRANSACTIONS_START = '[Transaction] Get Transactions Start',
+  GET_TRANSACTIONS_SUCCESS = '[Transaction] Get Transactions Success',
+  GET_TRANSACTIONS_ERROR = '[Transaction] Get Transactions Error',
+  GET_TRANSACTIONS_STOP = '[Transaction] Get Transactions',
 }
 
 export class ResetState implements Action {
@@ -20,8 +22,12 @@ export class SetTransactionsCursorId implements Action {
   constructor(public payload: number) {}
 }
 
-export class GetTransactions implements Action {
-  readonly type = TransactionActionTypes.GET_TRANSACTIONS;
+export class GetTransactionsLoad implements Action {
+  readonly type = TransactionActionTypes.GET_TRANSACTIONS_LOAD;
+}
+
+export class GetTransactionsStart implements Action {
+  readonly type = TransactionActionTypes.GET_TRANSACTIONS_START;
 }
 
 export class GetTransactionsSuccess implements Action {
@@ -33,12 +39,16 @@ export class GetTransactionsSuccess implements Action {
 export class GetTransactionsError implements Action {
   readonly type = TransactionActionTypes.GET_TRANSACTIONS_ERROR;
 
-  constructor(public payload: Transaction[]) {}
+  constructor(public payload: any) {}
 }
-
+export class GetTransactionsStop implements Action {
+  readonly type = TransactionActionTypes.GET_TRANSACTIONS_STOP;
+}
 export type TransactionActions =
   | ResetState
   | SetTransactionsCursorId
-  | GetTransactions
+  | GetTransactionsLoad
+  | GetTransactionsStart
   | GetTransactionsSuccess
-  | GetTransactionsError;
+  | GetTransactionsError
+  | GetTransactionsStop;

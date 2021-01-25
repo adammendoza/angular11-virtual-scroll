@@ -1,7 +1,7 @@
 export interface Transaction {
-  rowId: string;
+  rowId: number;
+  datetime: string;
   type: string;
-  amount: number;
-  date: Date;
   addressId: string;
+  amount: number;
 }

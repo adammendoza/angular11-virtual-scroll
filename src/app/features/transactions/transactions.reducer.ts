@@ -1,4 +1,5 @@
 import { Action, createFeatureSelector, createSelector } from '@ngrx/store';
+import * as moment from 'moment-mini-ts';
 
 import { TransactionActions, TransactionActionTypes } from './transactions.actions';
 import { Transaction } from './models/transaction.model';
@@ -6,39 +7,63 @@ import * as fromRoot from '../../app.reducer';
 
 
 export interface State extends fromRoot.State {
-  transaction: TransactionState;
+  transactions: TransactionsState;
 }
 
-export interface TransactionState {
-  transactionCursorId: number;
+export interface TransactionsState {
+  transactionsCursorId: number;
+  ids: number[];
   transactions: Transaction[];
+  stream: boolean;
 }
 
-const initialState: TransactionState = {
-  transactionCursorId: 0,
-  transactions: []
+const initialState: TransactionsState = {
+  transactionsCursorId: 0,
+  ids: [],
+  transactions: [],
+  stream: false,
 };
 
-export function transactionReducer(state = initialState, action: TransactionActions) {
+export function transactionsReducer(state = initialState, action: TransactionActions) {
   switch (action.type) {
     case TransactionActionTypes.RESET_STATE:
       return Object.assign({}, initialState);
     case TransactionActionTypes.SET_TRANSACTIONS_CURSOR_ID:
       return {
         ...state,
-        transactionCursorId: action.payload
+        transactionsCursorId: action.payload
       };
-    case TransactionActionTypes.GET_TRANSACTIONS:
-        return state;
+    case TransactionActionTypes.GET_TRANSACTIONS_LOAD:
+      return {
+          ...state,
+          stream: true,
+        };
+    case TransactionActionTypes.GET_TRANSACTIONS_START:
+      return {
+          ...state,
+          stream: true,
+        };
     case TransactionActionTypes.GET_TRANSACTIONS_SUCCESS:
       return {
         ...state,
-        transactions: action.payload
-      };
+        ids: [
+            ...action.payload
+                .map(trans => trans.rowId)
+                .reverse()
+        ],
+        transactions: state.transactions.concat(action.payload).slice(),
+        transactionsCursorId: action.payload.slice(-1)[0].rowId,
+        stream: true,
+        };
     case TransactionActionTypes.GET_TRANSACTIONS_ERROR:
       return {
         ...state,
         transactions: action.payload
+      };
+    case TransactionActionTypes.GET_TRANSACTIONS_STOP:
+      return {
+        ...state,
+        stream: false
       };
     default: {
       return state;
@@ -46,9 +71,9 @@ export function transactionReducer(state = initialState, action: TransactionActi
   }
 }
 
-export const getTransactionState = createFeatureSelector<TransactionState>('transaction');
+export const getTransactionsState = createFeatureSelector<TransactionsState>('transactions');
 
 export const getTransactions = createSelector(
-  getTransactionState,
-  (state: TransactionState) => state.transactions
+  getTransactionsState,
+  (state: TransactionsState) => state.transactions
 );

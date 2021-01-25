@@ -5,11 +5,12 @@ import { HttpClient } from '@angular/common/http';
 import { Store } from '@ngrx/store';
 import { tap, map, take, switchMap, withLatestFrom, catchError, takeUntil } from 'rxjs/operators';
 import { of, Subject, empty, timer, pipe } from 'rxjs';
+import * as moment from 'moment-mini-ts';
 
 import { Transaction } from './models/transaction.model';
 import { UIService } from '../../shared/ui.service';
 import * as UI from '../../shared/ui.actions';
-import * as Transactions from './transactions.actions';
+import * as transactionsActions from './transactions.actions';
 import * as fromTransactions from './transactions.reducer';
 import * as fromAuth from '../../app.reducer';
 
@@ -18,37 +19,75 @@ import { environment } from '../../../environments/environment';
 const storageActionDestroy$ = new Subject();
 
 @Injectable()
-export class StorageBlockEffects {
+export class TransactionsEffects {
 
   private isAuth$: Observable<boolean>;
   private receiverId: string;
+  private rowLimit = 15;
 
     @Effect()
     StorageBlock$ = this.actions$.pipe(
-        ofType('GET_TRANSACTIONS'),
+        ofType('GET_TRANSACTIONS_LOAD'),
 
         // merge state
         withLatestFrom(this.store, (action: any, state) => ({ action, state })),
         switchMap(({ action, state }) => {
             let url = environment.API_URL;
-            url += `/tables/op?columns=row_id,time,type,sender,volume&receiver=${this.receiverId}&type=transaction&limit=10&cursor.gte=${state.transaction.transactionCursorId}`
+            let cursorId = state.transactions.transactionsCursorId ? state.transactions.transactionsCursorId : 0;
+            url += `/tables/op?columns=row_id,time,type,sender,volume&receiver=${this.receiverId}&type=transaction&limit=${this.rowLimit}&cursor.gte=${cursorId}`
             return this.http.get(url);
         }),
 
-        tap((payload) => ({ type: 'SET_TRANSACTIONS_CURSOR_ID', payload: (<Array<Transaction>>payload).slice(-1)[0].rowId })),
+        map(response => {
+          return (<Array<any>>response).map((tx: Array<any>) => {
+            return <Transaction> {rowId: tx[0], datetime: moment(tx[1]).format('HH:mm:ss,  DD MMM YYYY'), type: tx[2], addressId: tx[3], amount: tx[4] };
+          });
+        }),
 
         // dispatch action
-        map((payload) => ({ type: 'GET_TRANSACTIONS_SUCCESS', payload: payload })),
+        map((response) => ({ type: transactionsActions.TransactionActionTypes.GET_TRANSACTIONS_SUCCESS, payload: response })),
         catchError((error, caught) => {
             console.error(error);
             this.store.dispatch({
-                type: 'GET_TRANSACTIONS_ERROR',
+                type: transactionsActions.TransactionActionTypes.GET_TRANSACTIONS_ERROR,
                 payload: error,
             });
             return caught;
         })
 
     );
+
+
+    @Effect()
+    NetworkActionStartEffect$ = this.actions$.pipe(
+        ofType('GET_TRANSACTIONS_START'),
+
+        // merge state
+        withLatestFrom(this.store, (action: any, state) => ({ action, state })),
+        switchMap(({ action, state }) =>
+
+            // get data every second
+            timer(0, 10000).pipe(
+                takeUntil(storageActionDestroy$),
+                switchMap(() => {
+                    let url = environment.API_URL;
+                    let cursorId = state.transactions.transactionsCursorId ? state.transactions.transactionsCursorId : 0;
+                    url += `/tables/op?columns=row_id,time,type,sender,volume&receiver=${this.receiverId}&type=transaction&limit=${this.rowLimit}&cursor.gte=${cursorId}`
+                    return this.http.get(url).pipe(
+                      map(response => {
+                        return (<Array<any>>response).map((tx: Array<any>) => {
+                          return <Transaction> {rowId: tx[0], datetime: moment(tx[1]).format('HH:mm:ss,  DD MMM YYYY'), type: tx[2], addressId: tx[3], amount: tx[4] };
+                        });
+                      }),
+                      map(response => ({ type: transactionsActions.TransactionActionTypes.GET_TRANSACTIONS_SUCCESS, payload: response })),
+                      catchError(error => of({ type: transactionsActions.TransactionActionTypes.GET_TRANSACTIONS_ERROR, payload: error })),
+                    );
+                }
+                )
+            )
+        ),
+    );
+
 
     @Effect({ dispatch: false })
     StorageBlockStopEffect$ = this.actions$.pipe(
@@ -80,7 +119,7 @@ export class StorageBlockEffects {
             });
         } else {
           this.receiverId = '';
-          this.store.dispatch(new Transactions.ResetState());
+          this.store.dispatch(new transactionsActions.ResetState());
         }
       });
     }
